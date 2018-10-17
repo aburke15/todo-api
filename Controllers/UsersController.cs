@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using TodoData;
+using TodoData.Models;
 
 namespace TodoApi.Controllers
 {
@@ -10,6 +12,11 @@ namespace TodoApi.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly TodoContext _context;
+
+        public UsersController(TodoContext context) 
+            => _context = context;
+
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
@@ -26,8 +33,26 @@ namespace TodoApi.Controllers
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult CreateUser([FromBody]CreateUserRequest request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var user = new User
+            {
+                LastUpdatedOn = null,
+                DeprecatedOn = null,
+                Firstname = request.Firstname,
+                Lastname = request.Lastname,
+                Username = request.Username,
+                Email = request.Email,
+                Phone = request.Phone
+            };
+            
+            _context.User.Add(user);
+            _context.SaveChanges();
+
+            return Ok("User successfully created.");
         }
 
         // PUT api/values/5
